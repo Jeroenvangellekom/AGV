@@ -1,15 +1,14 @@
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
 
-static const int RXPin = 0, TXPin = 3;
+static const int RXPin = 0, TXPin = 1;
 static const uint32_t GPSBaud = 9600;
 
 TinyGPSPlus gps;
-
 SoftwareSerial ss(RXPin, TXPin);
-float lat2 = 51.646918;
-float lon2 = 5.545337;
- 
+
+float way_lat = 51.646918;
+float way_lon = 5.545337;
 float lat;
 float lon;
 int sat;
@@ -20,29 +19,10 @@ void setup() {
   ss.begin(GPSBaud);
 }
 
-float bearing(float lat, float lon, float lat2, float lon2) {
-
-  float teta1 = radians(lat);
-  float teta2 = radians(lat2);
-  float delta1 = radians(lat2 - lat);
-  float delta2 = radians(lon2 - lon);
-
-  float y = sin(delta2) * cos(teta2);
-  float x = cos(teta1) * sin(teta2) - sin(teta1) * cos(teta2) * cos(delta2);
-  float brng = atan2(y, x);
-  brng = degrees(brng);// radians to degrees
-  brng = ( ((int)brng + 360) % 360 );
-  Serial.print("Heading GPS: ");
-  Serial.println(brng);
-
-  return brng;
-
-
-}
-void loop() {
-  // This sketch displays information every time a new sentence is correctly encoded.
+void getGPS() {
   while (ss.available() > 0) {
     gps.encode(ss.read());
+
     if (gps.location.isUpdated()) {
       lat = gps.location.lat();
       lon = gps.location.lng();
@@ -50,7 +30,60 @@ void loop() {
       HDOP = gps.hdop.value();
     }
   }
-  bearing(lat, lon, lat2, lon2);
-  Serial.println(gps.satellites.value());
-delay(500);
+}
+
+float bearing() {
+
+  float teta1 = radians(lat);
+  float teta2 = radians(way_lat);
+  float delta1 = radians(way_lat - lat);
+  float delta2 = radians(way_lon - lon);
+
+  float y = sin(delta2) * cos(teta2);
+  float x = cos(teta1) * sin(teta2) - sin(teta1) * cos(teta2) * cos(delta2);
+  float brng = atan2(y, x);
+  brng = degrees(brng);// radians to degrees
+  brng = ( ((int)brng + 360) % 360 );
+
+  while (gps.satellites.value() >= 4) {
+    Serial.print("Current position: ");
+    Serial.print(lat, 6);
+    Serial.print(",");
+    Serial.println(lon, 6);
+
+    Serial.print("Target position:  ");
+    Serial.print(way_lat, 6);
+    Serial.print(",");
+    Serial.println(way_lon, 6);
+
+    Serial.print("Heading GPS:      ");
+    Serial.print(brng);
+    Serial.println(" degrees");
+
+    Serial.print("Satellite locks:  ");
+    Serial.println(gps.satellites.value());
+    Serial.println("=================================================");
+    delay(2000);
+
+  }
+  Serial.print("Searching for satallites (");
+  Serial.print(gps.satellites.value());
+  Serial.println("/4)");
+  delay(500);
+  Serial.print(".");
+  delay(500);
+  Serial.print(".");
+  delay(500);
+  Serial.println(".");
+  delay(500);
+}
+
+
+void loop() {
+
+  getGPS();
+  bearing();
+  //Serial.println(gps.satellites.value());
+
+
 }
