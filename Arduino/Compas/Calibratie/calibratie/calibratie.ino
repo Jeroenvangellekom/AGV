@@ -41,27 +41,43 @@ int CompassHeading() {
     int h = h1;
     return h;
   }
-  Serial.print("current angle is ");
-  Serial.println(CompassHeading());
+
 }
 
-int TurnToAngle(int angle_to_target) {
-  int error = angle_to_target - CompassHeading();
+double TurnToAngle(double angle_to_target) {
+
+  double steer_angle1 = angle_to_target - CompassHeading();
+  double steer_angle;
+
+  if (steer_angle1 > 180) {
+    steer_angle = (steer_angle1 - 360);
+  }
+  else if (steer_angle1 < -180) {
+    steer_angle = (steer_angle1 + 360);
+  }
+  else {
+    steer_angle = steer_angle1;
+  }
+
+
+  Serial.print("current angle is         ");
+  Serial.println(CompassHeading());
   Serial.print("error to target angle is ");
-  Serial.println(error);
+  Serial.println(steer_angle);
+  delay(500);
 }
 
 
 void loop()
 {
 
+  //TurnToAngle(10);
   imu.readMag();
-  Serial.print(imu.mx);
+  Serial.print(imu.mx - 650);
   Serial.print(", ");
-  Serial.print(imu.my);
-  Serial.print(", ");
-  Serial.println(CompassHeading());
-
+  Serial.print(imu.my + 875);
+  Serial.println();
+delay(100);
 }
 
 

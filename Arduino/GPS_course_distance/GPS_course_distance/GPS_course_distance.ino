@@ -41,31 +41,31 @@ void loop()
   Serial.println(courseToWaypoint(way1_LAT, way1_LON));
   Serial.println();
 
-  Serial.println("Huis:");
-  Serial.print("   Distance to waypoint2: ");
-  Serial.println(distanceToWaypoint(way2_LAT, way2_LON));
-  Serial.print("   course to waypoint2: ");
-  Serial.println(courseToWaypoint(way2_LAT, way2_LON));
-  Serial.println();
+  /* Serial.println("Huis:");
+   Serial.print("   Distance to waypoint2: ");
+   Serial.println(distanceToWaypoint(way2_LAT, way2_LON));
+   Serial.print("   course to waypoint2: ");
+   Serial.println(courseToWaypoint(way2_LAT, way2_LON));
+   Serial.println();
 
-  Serial.println("Loods:");
-  Serial.print("   Distance to waypoint3: ");
-  Serial.println(distanceToWaypoint(way3_LAT, way3_LON));
-  Serial.print("   course to waypoint3: ");
-  Serial.println(courseToWaypoint(way3_LAT, way3_LON));
-  Serial.println();
+   Serial.println("Loods:");
+   Serial.print("   Distance to waypoint3: ");
+   Serial.println(distanceToWaypoint(way3_LAT, way3_LON));
+   Serial.print("   course to waypoint3: ");
+   Serial.println(courseToWaypoint(way3_LAT, way3_LON));
+   Serial.println();
 
-  Serial.println("huidige locatie:");
-  Serial.println(gps.location.lat(),7);
-  Serial.print(" , ");
-  Serial.println(gps.location.lng(),7);
-  Serial.println();
-  
+   Serial.println("huidige locatie:");
+   Serial.println(gps.location.lat(),7);
+   Serial.print(" , ");
+   Serial.println(gps.location.lng(),7);
+   Serial.println();*/
 
   smartDelay(1000);
 
   if (millis() > 5000 && gps.charsProcessed() < 10)
     Serial.println(F("No GPS data received: check wiring"));
+
 }
 
 

@@ -1,45 +1,36 @@
 #include <Servo.h>
 
-Servo Motor_R;
-Servo Motor_L;
+Servo motorR;
+Servo motorL;
 
-int MoveSpeed = 0;
-int WaitTime = 20;
 void setup()
 {
-  Serial.begin(9600);
-  Motor_R.attach(11);
-  Motor_L.attach(10);
+  Serial.begin(115200);
+  motorR.attach(5);
+  motorL.attach(6);
   pinMode(13, OUTPUT);
   digitalWrite(13, LOW);
 }
 
 void loop()
 {
-  for (int i = 0; i <= 1; i++)
-  {
-    for (MoveSpeed = 0; MoveSpeed <= 255; MoveSpeed++)
-    {
-      Serial.println(MoveSpeed);
-      Motor_R.write(MoveSpeed);
-      Motor_L.write(MoveSpeed);
-      delay(WaitTime);
-    }
-    for (MoveSpeed = 255; MoveSpeed >= 0; MoveSpeed--)
-    {
-      Serial.println(MoveSpeed);
-      Motor_R.write(MoveSpeed);
-      Motor_L.write(MoveSpeed);
-      delay(WaitTime);
-    }
-  }
-  for (int x = 0; x <= 400; x++)
-  {
-    digitalWrite(13, HIGH);
-    Serial.println(127);
-    Motor_R.write(127);
-    Motor_L.write(127);
-    delay(WaitTime);
-    digitalWrite(13, LOW);
-  }
+motorController(70,70);
+}
+
+void motorController(int speedLeft, int speedRight) {
+  int  minPWM = 1000; //100% reverse
+  int  maxPWM = 2000; //100% forward
+
+  speedRight = constrain(speedRight, -100, 100);  // -100 full speed reverse, 100 full speed forward
+  speedLeft  = constrain(speedLeft, -100, 100);
+
+  int MCspeedRight = map(speedRight, -100, 100, minPWM, maxPWM);
+  int MCspeedLeft  = map(speedLeft , -100, 100, maxPWM, minPWM);
+  Serial.print("      left motor: ");
+  Serial.print(speedRight);
+  Serial.print("      right motor: ");
+  Serial.println(speedLeft);
+
+  motorR.writeMicroseconds(MCspeedRight);
+  motorL.writeMicroseconds(MCspeedLeft);
 }

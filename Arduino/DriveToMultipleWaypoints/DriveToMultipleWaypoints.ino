@@ -9,11 +9,20 @@
 
 static const int RX3Pin = 15;          //GPS
 static const int RXPin = 0;            //Laptop
-static const int TXPin = 1; 
+static const int TXPin = 1;
 static const uint32_t GPSBaud = 9600;
 
-static const double way1_LAT = 51.646608, way1_LON = 5.545297; //trampoline
 
+/* parkeerplaats
+static const double way_LAT1 = 51.6472990, way_LON1 = 5.5449639;
+static const double way_LAT2 = 51.6473595, way_LON2 = 5.5448237;
+static const double way_LAT3 = 51.6471793, way_LON3 = 5.5447936;
+static const double way_LAT4 = 51.6471321, way_LON4 = 5.5449736; */
+
+static const double way_LAT1 = 51.647037, way_LON1 = 5.545925;
+static const double way_LAT2 = 51.646819, way_LON2 = 5.545886;
+static const double way_LAT3 = 51.646836, way_LON3 = 5.545570;
+static const double way_LAT4 = 51.647079, way_LON4 = 5.545582;
 
 
 LSM9DS1 imu;
@@ -24,8 +33,12 @@ Servo motorL;
 int magxOffset = -650;
 int magyOffset = 875;
 
+int state;
+int waypointRadius = 1;
+
 void setup()
 {
+
   ////sets I2c ports for compass////
   imu.settings.device.commInterface = IMU_MODE_I2C;
   imu.settings.device.mAddress = LSM9DS1_M;
@@ -35,12 +48,12 @@ void setup()
   pinMode(RX3Pin, INPUT);
   Serial3.begin(GPSBaud); //sets GPS software serial
 
-    ////sets serial for GPS////
+  ////sets serial for GPS////
   pinMode(RXPin, INPUT);
   pinMode(TXPin, INPUT);
   Serial.begin(115200); //sets GPS software serial
 
-    ////configure motors////
+  ////configure motors////
   motorR.attach(5);
   motorL.attach(6);
 
@@ -157,39 +170,97 @@ void motorController(int speedLeft, int speedRight) {
   motorL.writeMicroseconds(MCspeedLeft);
 }
 
+void driveToWaypoint(double way_LAT, double way_LON) {
+  int turnAngle = TurnToAngle(courseToWaypoint(way_LAT, way_LON)); //waarde tussen -180 en 180
+  double Pgain = 1.5;
+
+  if (turnAngle < 5 && turnAngle > -5) {
+    motorController(70, 70);
+  }
+  else {
+    int speedR = 70 - (turnAngle * Pgain);
+    int speedL = 70 + (turnAngle * Pgain);
+    motorController(speedL, speedR);
+  }
+
+
+
+  Serial.print("huidige locatie:  ");
+  Serial.print(gps.location.lat(), 7);
+  Serial.print(", ");
+  Serial.println(gps.location.lng(), 7);
+
+  smartDelay(10);
+  if (millis() > 5000 && gps.charsProcessed() < 10)
+    Serial.println(F("No GPS data received: check wiring"));
+}
 
 
 
 void loop()
 {
- double way_LAT1 = 51.646658;
-    double way_LON1 = 5.545198;
 
 
-    int turnAngle = TurnToAngle(courseToWaypoint(way_LAT1, way_LON1)); //waarde tussen -180 en 180
-    double Pgain = 1.5;
-    if (distanceToWaypoint(way_LAT1, way_LON1) > 2) {
+  switch (state)
+  {
+    case 0:
+      Serial.print("State 0, waiting for satalites .... ");
+      Serial.print(gps.satellites.value());
+      Serial.println();
+      smartDelay(1000);
+      if (gps.satellites.value() > 3) {
+        state = 1;
+      }
+      break;
 
 
-      if (turnAngle < 10 && turnAngle > -10) {
-        motorController(70, 70);
+    case 1:
+      Serial.print("State 1, driving to waypoint 1");
+      Serial.println();
+      if (distanceToWaypoint(way_LAT1, way_LON1) <= waypointRadius) {
+        state = 2;
       }
       else {
-        int speedR = 70 - (turnAngle * Pgain);
-        int speedL = 70 + (turnAngle * Pgain);
-        motorController(speedL, speedR);
+        driveToWaypoint(way_LAT1, way_LON1);
       }
-    } else motorController(0, 0);
+      break;
 
+    case 2:
+      Serial.print("State 2, driving to waypoint 2");
+      Serial.println();
+      if (distanceToWaypoint(way_LAT2, way_LON2) <= waypointRadius) {
+        state = 3;
+      }
+      else {
+        driveToWaypoint(way_LAT2, way_LON2);
+      }
+      break;
 
-    Serial.print("huidige locatie:  ");
-    Serial.print(gps.location.lat(), 7);
-    Serial.print(", ");
-    Serial.println(gps.location.lng(), 7);
+    case 3:
+      Serial.print("State 3, driving to waypoint 3");
+      Serial.println();
+      if (distanceToWaypoint(way_LAT3, way_LON3) <= waypointRadius) {
+        state = 4;
+      }
+      else {
+        driveToWaypoint(way_LAT3, way_LON3);
+      }
+      break;
 
-    smartDelay(10);
-    if (millis() > 5000 && gps.charsProcessed() < 10)
-      Serial.println(F("No GPS data received: check wiring"));
-      
+    case 4:
+      Serial.print("State 4, driving to waypoint 4");
+      Serial.println();
+      if (distanceToWaypoint(way_LAT4, way_LON4) <= waypointRadius) {
+        state = 5;
+      }
+      else {
+        driveToWaypoint(way_LAT4, way_LON4);
+      }
+      break;
+
+    case 5:
+      Serial.print("State 4, stopping at waypoint 3");
+      Serial.println();
+      motorController(0, 0);
+  }
 }
-
